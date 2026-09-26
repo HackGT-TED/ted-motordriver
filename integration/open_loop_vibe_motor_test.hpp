@@ -63,6 +63,8 @@ void setup() {
 }
 
 void loop() {
+    // Update motor
+    vibeMotor.update();
     // Command open-loop motor velocity with sinusoidal vibration profile
     vibeMotor.setVelocity(getVibrationCommand(millis() - vibStart));
 

@@ -44,6 +44,10 @@ void OpenLoopVibeMotor::begin() {
     motor.initFOC();
 }
 
+void OpenLoopVibeMotor::update() {
+    motor.loopFOC();
+}
+
 void OpenLoopVibeMotor::setVelocity(float velocity) {
     motor.move(velocity);
 }
