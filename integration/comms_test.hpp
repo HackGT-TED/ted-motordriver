@@ -16,9 +16,9 @@ std::shared_ptr<SongbirdCore> core;
 
 void setup() {
     // Initialize built-in LED pin
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(2, OUTPUT);
 
-    // Initialize UART and protocol
+    // Initialize debug output
     Serial.begin(SERIAL_BAUD);
     delay(2000);
     Serial.println("[Comms Test] UART Slave Test...");
@@ -28,15 +28,13 @@ void setup() {
 
     // Test handler
     core->setReadHandler([&](std::shared_ptr<SongbirdCore::Packet> pkt){
-        //Turn on built in LED
-        digitalWrite(LED_BUILTIN, HIGH);
         if (pkt->getHeader() == 0x10 && pkt->getPayloadLength() == 4) {
             // Read float from packet payload
             float velocity = pkt->readFloat();
             Serial.print("Received velocity: ");
             Serial.println(velocity);
             //Turn on built in LED
-            digitalWrite(LED_BUILTIN, HIGH);
+            digitalWrite(2, HIGH);
         }
     });
 

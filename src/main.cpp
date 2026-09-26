@@ -3,7 +3,7 @@
 // This will include an hpp file for testing purposes
 // Be sure to comment out this line for production builds
 //////////////////////////////////////////////////////////////
-#define INTEGRATION_TESTING
+//#define INTEGRATION_TESTING
 
 #ifdef INTEGRATION_TESTING
 #include "../integration/comms_test.hpp" // Testing file to run
@@ -17,6 +17,7 @@
 #include "SongbirdUART.h"
 
 #define SERIAL_BAUD 115200
+#define COMMS_BAUD 9600
 
 //Serial node object with software serial on pins 14 (RX) and 15 (TX)
 SoftwareSerial serial(14, 15);
@@ -36,6 +37,14 @@ OpenLoopVibeMotor vibeMotor(
     focMotorPins[MOTOR_PORT][5]);
 
 void setup() {
+    // Initialize built-in LED pin
+    pinMode(2, OUTPUT);
+
+    // Initialize serial debug output
+    Serial.begin(SERIAL_BAUD);
+    delay(2000);
+    Serial.println("[Motor Driver] UART Slave Mode...");
+
     // Initialize OpenLoopVibeMotor
     vibeMotor.begin();
     vibeMotor.setVelocity(0.0f);
@@ -47,14 +56,24 @@ void setup() {
 
     core->setReadHandler([&](std::shared_ptr<SongbirdCore::Packet> pkt){
         if (pkt->getHeader() == 0x10 && pkt->getPayloadLength() == 4) {
-        // Read float from packet payload
-        float velocity = pkt->readFloat();
-        // Set motor velocity
-        vibeMotor.setVelocity(velocity);
+            // Read float from packet payload
+            float velocity = pkt->readFloat();
+            // Set motor velocity
+            vibeMotor.setVelocity(velocity);
+            Serial.print("Received velocity: ");
+            Serial.println(velocity);
+
+            digitalWrite(2, HIGH); // Turn on built-in LED to indicate packet received
         }
     });
 
-    uart.begin(SERIAL_BAUD);
+    // Initialize the UART node
+    if (!uart.begin(COMMS_BAUD)) {
+        Serial.println("[Comms Test] Failed to initialize UART node.");
+        while (true) {
+            delay(1000);
+        }
+    }
 }
 
 void loop() {
