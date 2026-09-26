@@ -6,7 +6,7 @@
 #include "SongbirdUART.h"
 
 #define SERIAL_BAUD 115200
-#define COMMS_BAUD 9600
+#define COMMS_BAUD 38400
 
 //Serial node object with software serial on pins 14 (RX) and 15 (TX)
 SoftwareSerial serial(14, 15);
