@@ -6,6 +6,8 @@
 #define INTEGRATION_TESTING
 
 #ifdef INTEGRATION_TESTING
-#include "../integration/foc_motor_standalone_test.hpp" // Testing file to run
+#include <SimpleFOC.h>
+#include "HydraFOCMotor.h"
+#include "../integration/open_loop_vibe_motor_test.hpp" // Testing file to run
 #endif
 //////////////////////////////////////////////////////////////

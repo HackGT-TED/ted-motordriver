@@ -5,16 +5,25 @@
 #include "HydraFOCMotor.h"
 #include "HydraFOCConfig.h"
 
+#define MOTOR_PORT 0
+
 // Loop counter
 unsigned long loopCounter = 0;
 
 // HydraFOC motor object
-HydraFOCMotor motor(focMotorPins[0][0], focMotorPins[0][1], focMotorPins[0][2], focMotorPins[0][3], focMotorPins[0][4], focMotorPins[0][5], I2C1_SDA, focCurrentPins[0][0], focCurrentPins[0][1]);
+HydraFOCMotor motor(focMotorPins[MOTOR_PORT][0], focMotorPins[MOTOR_PORT][1], focMotorPins[MOTOR_PORT][2], focMotorPins[MOTOR_PORT][3], focMotorPins[MOTOR_PORT][4], focMotorPins[MOTOR_PORT][5], I2C1_SDA, focCurrentPins[MOTOR_PORT][0], focCurrentPins[MOTOR_PORT][1]);
 
 void setup() {
     Serial.begin(SERIAL_BAUD_RATE);
     // Configure I2C
-    Wire.begin(I2C0_SDA, I2C0_SCL);
+    if (MOTOR_PORT == 0) {
+        Wire.begin(I2C0_SDA, I2C0_SCL);
+    } else if (MOTOR_PORT == 1) {
+        Wire.begin(I2C1_SDA, I2C1_SCL);
+    } else {
+        Serial.println("Invalid MOTOR_PORT defined. Please set to 0 or 1.");
+        while (true); // Halt execution
+    }
 
     // Configure driver pins
     pinMode(focDriverSleepPin, OUTPUT);

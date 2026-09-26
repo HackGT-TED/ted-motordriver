@@ -1,2 +1,7 @@
 This directory is intended for more complex tests that cannot be effectively unit tested
 Follow instructions in main.cpp for running these tests
+
+Available test:
+- `http_mp3_stream_test.hpp` - Connects to Wi-Fi and streams MP3 audio from an HTTP URL via I2S output.
+	- Configure `WIFI_SSID`, `WIFI_PASSWORD`, and `MP3_HTTP_URL` in the header before running.
+	- Uses library: `https://github.com/schreibfaul1/ESP32-audioI2S.git`.

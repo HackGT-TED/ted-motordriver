@@ -27,7 +27,7 @@ uint8_t CORE_1 = 1;
 #define I2C_TIMEOUT 1000 // in milliseconds
 
 //Serial parameters
-#define SERIAL_BAUD_RATE 460800
+#define SERIAL_BAUD_RATE 115200
 
 ////////////////////////////////////////////////////////////////////
 // Servo configuration

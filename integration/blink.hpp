@@ -5,6 +5,7 @@
 #include <Arduino.h>
 
 void setup() {
+    Serial.begin(115200);
     // Initialize the built-in LED pin as an output
     pinMode(2, OUTPUT);
 }
@@ -15,7 +16,7 @@ void loop() {
     // Wait for 1000 milliseconds (1 second)
     delay(1000);
     // Turn the LED off
-    digitalWrite(2, LOW); 
+    digitalWrite(2, LOW);
     // Wait for 1000 milliseconds (1 second)
     delay(1000);
 }
