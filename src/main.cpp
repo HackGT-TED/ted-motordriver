@@ -3,15 +3,12 @@
 // This will include an hpp file for testing purposes
 // Be sure to comment out this line for production builds
 //////////////////////////////////////////////////////////////
-//#define INTEGRATION_TESTING
+#define INTEGRATION_TESTING
 
 #ifdef INTEGRATION_TESTING
-#include <SimpleFOC.h>
-#include "HydraFOCMotor.h"
-#include "../integration/open_loop_vibe_motor_test.hpp" // Testing file to run
-#endif
-//////////////////////////////////////////////////////////////
+#include "../integration/comms_test.hpp" // Testing file to run
 
+#else
 #include <Arduino.h>
 #include <memory>
 #include "HydraFOCConfig.h"
@@ -21,8 +18,9 @@
 
 #define SERIAL_BAUD 115200
 
-//Serial node object
-SongbirdUART uart("UART Node");
+//Serial node object with software serial on pins 14 (RX) and 15 (TX)
+SoftwareSerial serial(14, 15);
+SongbirdUART uart("UART Node", serial);
 //Serial protocol object
 std::shared_ptr<SongbirdCore> core;
 
@@ -65,3 +63,5 @@ void loop() {
     // Update UART data
     uart.updateData();
 }
+#endif
+//////////////////////////////////////////////////////////////
