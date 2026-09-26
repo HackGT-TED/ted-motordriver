@@ -16,9 +16,9 @@ void OpenLoopVibeMotor::begin() {
     motor.linkDriver(&driver);
 
     // Maximal voltage to be set to the motor
-    motor.voltage_limit = 2.8f;
+    motor.voltage_limit = 2.24f;
     // Max current to be sent to the motor
-    motor.current_limit = 1.0f;
+    motor.current_limit = 0.8f;
 
     // Select open-loop control before initFOC(); no sensor is linked in this test.
     motor.controller = MotionControlType::velocity_openloop;
