@@ -6,13 +6,13 @@
 //#define INTEGRATION_TESTING
 
 #ifdef INTEGRATION_TESTING
-#include "../integration/comms_test.hpp" // Testing file to run
+#include "../integration/foc_motor_standalone_test.hpp" // Testing file to run
 
 #else
 #include <Arduino.h>
 #include <memory>
 #include "HydraFOCConfig.h"
-#include "actuators/OpenLoopVibeMotor.h"
+#include "actuators/EncoderMotor.h"
 #include "SongbirdCore.h"
 #include "SongbirdUART.h"
 
@@ -26,26 +26,18 @@ SongbirdUART uart("UART Node", serial);
 //Serial protocol object
 std::shared_ptr<SongbirdCore> core;
 
-// Motor port (0 or 1)
-#define MOTOR_PORT 0
+const float positionGain = 1.0f;
 
-OpenLoopVibeMotor vibeMotor(
-    focMotorPins[MOTOR_PORT][0],
-    focMotorPins[MOTOR_PORT][1],
-    focMotorPins[MOTOR_PORT][2],
-    focMotorPins[MOTOR_PORT][3],
-    focMotorPins[MOTOR_PORT][4],
-    focMotorPins[MOTOR_PORT][5]);
-
-float vibGain = 50.0f;     // Gain for the vibration signal
-
-uint64_t vibStart = 0; // Start time for vibration signal
-
-float getVibrationCommand(uint64_t time_ms, float vibAmplitude, float vibFreq) {
-    // Gets vibration signal based on elapsed time and wave params
-    float t = (float)time_ms / 1000.0f;
-    return vibAmplitude * vibGain *sin(2.0f * _PI * t * vibFreq);
-}
+EncoderMotor motors[NUM_FOC_MOTORS] = {
+    EncoderMotor(
+        focMotorPins[0][0], focMotorPins[0][1], focMotorPins[0][2],
+        focMotorPins[0][3], focMotorPins[0][4], focMotorPins[0][5],
+        I2C0_SDA, focCurrentPins[0][0], focCurrentPins[0][1]),
+    EncoderMotor(
+        focMotorPins[1][0], focMotorPins[1][1], focMotorPins[1][2],
+        focMotorPins[1][3], focMotorPins[1][4], focMotorPins[1][5],
+        I2C1_SDA, focCurrentPins[1][0], focCurrentPins[1][1])
+};
 
 void setup() {
     // Initialize built-in LED pin
@@ -56,27 +48,46 @@ void setup() {
     delay(2000);
     Serial.println("[Motor Driver] UART Slave Mode...");
 
-    // Initialize OpenLoopVibeMotor
-    vibeMotor.begin();
-    vibeMotor.setVelocity(0.0f);
+    pinMode(focDriverSleepPin, OUTPUT);
+    pinMode(focDriverResetPin, OUTPUT);
+    digitalWrite(focDriverSleepPin, HIGH);
+    digitalWrite(focDriverResetPin, HIGH);
+
+    Wire.begin(I2C0_SDA, I2C0_SCL);
+    Wire1.begin(I2C1_SDA, I2C1_SCL);
+
+    for  (uint8_t i = 0; i < NUM_FOC_MOTORS; i++) {
+        TwoWire* wire = (i == 0) ? &Wire : &Wire1;
+        motors[i].begin(motorDirs[i], encoderElectricAngles[i], true, wire);
+        motors[i].resetEncoder(encoderOffsets[i]);
+    }
+    
+
+    for (int i = 0; i < NUM_FOC_MOTORS; ++i) {
+        motors[i].setPosition(0.0f);
+    }
 
     delay(1000); // Wait for motor to stabilize
 
     // Initialize UART and protocol
     core = uart.getProtocol();
 
+    // Handler for receiving commands
     core->setReadHandler([&](std::shared_ptr<SongbirdCore::Packet> pkt){
-        if (pkt->getHeader() == AMPLITUDE_PACKET_HEADER && pkt->getPayloadLength() == 8) {
-            // Read float from packet payload
-            float amplitude = pkt->readFloat();
-            float frequency = pkt->readFloat();
-            // Set motor velocity
-            vibeMotor.setVelocity(getVibrationCommand(millis() - vibStart, amplitude, frequency));
+        if (pkt->getHeader() == AMPLITUDE_PACKET_HEADER && pkt->getPayloadLength() == 4) {
+            float magnitude = pkt->readFloat();
+            pkt->readFloat();
+
+            float position = magnitude * positionGain;
+            for (int i = 0; i < NUM_FOC_MOTORS; ++i) {
+                motors[i].setPosition(position);
+            }
+
             Serial.print("Received command: ");
-            Serial.print("Amplitude: ");
-            Serial.print(amplitude, 6);
-            Serial.print(", Frequency: ");
-            Serial.println(frequency, 6);
+            Serial.print("Magnitude: ");
+            Serial.print(magnitude, 6);
+            Serial.print(", Position: ");
+            Serial.println(position, 6);
 
             digitalWrite(2, HIGH); // Turn on built-in LED to indicate packet received
         }
@@ -90,14 +101,12 @@ void setup() {
         }
     }
 
-    // Logs vibration start time
-    vibStart = millis();
 }
 
 void loop() {
-    // Update motor
-    vibeMotor.update();
-    // Update UART data
+    for (int i = 0; i < NUM_FOC_MOTORS; ++i) {
+        motors[i].update();
+    }
     uart.updateData();
 }
 #endif

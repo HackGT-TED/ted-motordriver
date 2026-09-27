@@ -3,6 +3,7 @@
 
 //External imports
 #include <Arduino.h>
+#include <SimpleFOC.h>
 
 //////////////////////////////////////////////////////////////////
 // RTOS configuration
@@ -75,9 +76,10 @@ const uint8_t focCurrentPins[NUM_FOC_MOTORS][2] =
 // Encoder configuration
 ////////////////////////////////////////////////////////////////
 
-/*Direction * motorDirs = new Direction[NUM_FOC_MOTORS] {
-    Direction::CCW, // Motor 0
-    Direction::CCW  // Motor 1
+Direction * motorDirs = new Direction[NUM_FOC_MOTORS] {
+    Direction::CW, // Motor 0
+    Direction::CW  // Motor 1
 };
 
-float encoderElectricAngles[NUM_FOC_MOTORS] = {0.88f, 2.54f}; // Motor 0, Motor 1*/
+float encoderElectricAngles[NUM_FOC_MOTORS] = {3.81f, 3.23f}; // Motor 0, Motor 1*/
+float encoderOffsets[NUM_FOC_MOTORS] = {0.452f, 2.273f}; // Motor 0, Motor 1

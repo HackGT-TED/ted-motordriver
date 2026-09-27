@@ -5,10 +5,10 @@
 #include <SimpleFOC.h>
 
 // OpenLoopVibeMotor: Wrapper for SimpleFOC motor and driver
-class OpenLoopVibeMotor {
+class OpenLoopMotor {
 public:
     // Construct with motor driver pins and encoder i2c port
-    OpenLoopVibeMotor(uint8_t pwmA, uint8_t pwmB, uint8_t pwmC, uint8_t enA, uint8_t enB, uint8_t enC);
+    OpenLoopMotor(uint8_t pwmA, uint8_t pwmB, uint8_t pwmC, uint8_t enA, uint8_t enB, uint8_t enC);
 
     // Initialize the motor and driver
     void begin();
@@ -25,6 +25,7 @@ public:
 private:
     BLDCMotor motor;
     BLDCDriver3PWM driver;
+    float targetVelocity;
 };
 
 #endif

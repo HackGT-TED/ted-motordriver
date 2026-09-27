@@ -1,12 +1,13 @@
-#include "OpenLoopVibeMotor.h"
+#include "OpenLoopMotor.h"
 
-OpenLoopVibeMotor::OpenLoopVibeMotor(uint8_t pwmA, uint8_t pwmB, uint8_t pwmC, uint8_t enA, uint8_t enB, uint8_t enC)
+OpenLoopMotor::OpenLoopMotor(uint8_t pwmA, uint8_t pwmB, uint8_t pwmC, uint8_t enA, uint8_t enB, uint8_t enC)
     : motor(11),
-      driver(pwmA, pwmB, pwmC, enA, enB, enC)
+      driver(pwmA, pwmB, pwmC, enA, enB, enC),
+      targetVelocity(0)
 {
 }
 
-void OpenLoopVibeMotor::begin() {
+void OpenLoopMotor::begin() {
     // PWM frequency to be used [Hz]
     driver.pwm_frequency = 30000;
     // Power supply voltage [V]
@@ -44,14 +45,15 @@ void OpenLoopVibeMotor::begin() {
     motor.initFOC();
 }
 
-void OpenLoopVibeMotor::update() {
+void OpenLoopMotor::update() {
     motor.loopFOC();
+    motor.move(targetVelocity);
 }
 
-void OpenLoopVibeMotor::setVelocity(float velocity) {
-    motor.move(velocity);
+void OpenLoopMotor::setVelocity(float velocity) {
+    targetVelocity = velocity;
 }
 
-void OpenLoopVibeMotor::monitor() {
+void OpenLoopMotor::monitor() {
     motor.monitor();
 }
