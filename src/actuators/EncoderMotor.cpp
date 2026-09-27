@@ -20,8 +20,6 @@ void EncoderMotor::begin(Direction encDir, float encOffset, bool skipAlign, TwoW
     driver.pwm_frequency = 30000;
     // power supply voltage [V]
     driver.voltage_power_supply = 12;
-    // Max DC voltage allowed - default voltage_power_supply
-    driver.voltage_limit = 5.6;
 
     driver.init();
     motor.linkDriver(&driver);
@@ -35,11 +33,14 @@ void EncoderMotor::begin(Direction encDir, float encOffset, bool skipAlign, TwoW
     // default parameters in defaults.h
 
     // velocity PI controller parameters
-    motor.PID_velocity.P = 0.2f;
-    motor.PID_velocity.I = 16.f;
-    motor.PID_velocity.D = 0;
+    motor.PID_velocity.P = 0.1f;
+    motor.PID_velocity.I = 10.f;
+    motor.PID_velocity.D = 0.f;
+
     // maximal voltage to be set to the motor
-    motor.voltage_limit = 5.6f;
+    motor.voltage_limit = 2.8f;
+    //maximal current to be sent to the motor
+    motor.current_limit = 1.0f;
 
     // velocity low pass filtering time constant
     // the lower the less filtered

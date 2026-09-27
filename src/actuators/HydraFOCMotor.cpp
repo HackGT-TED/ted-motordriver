@@ -26,9 +26,7 @@ void HydraFOCMotor::begin(Direction encDir, float encOffset, bool skipAlign, Two
     driver.pwm_frequency = 30000;
     // power supply voltage [V]
     driver.voltage_power_supply = 12;
-    // Max DC voltage allowed - default voltage_power_supply
-    driver.voltage_limit = 5.6;
-
+    
     driver.init();
     motor.linkDriver(&driver);
 
