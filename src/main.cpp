@@ -37,12 +37,11 @@ OpenLoopVibeMotor vibeMotor(
     focMotorPins[MOTOR_PORT][4],
     focMotorPins[MOTOR_PORT][5]);
 
-float vibFreq = 200.f;      // Frequency of the vibration signal in Hz
-float vibGain = 20.0f;     // Gain for the vibration signal
+float vibGain = 50.0f;     // Gain for the vibration signal
 
 uint64_t vibStart = 0; // Start time for vibration signal
 
-float getVibrationCommand(uint64_t time_ms, float vibAmplitude) {
+float getVibrationCommand(uint64_t time_ms, float vibAmplitude, float vibFreq) {
     // Gets vibration signal based on elapsed time and wave params
     float t = (float)time_ms / 1000.0f;
     return vibAmplitude * vibGain *sin(2.0f * _PI * t * vibFreq);
@@ -67,13 +66,17 @@ void setup() {
     core = uart.getProtocol();
 
     core->setReadHandler([&](std::shared_ptr<SongbirdCore::Packet> pkt){
-        if (pkt->getHeader() == AMPLITUDE_PACKET_HEADER && pkt->getPayloadLength() == 4) {
+        if (pkt->getHeader() == AMPLITUDE_PACKET_HEADER && pkt->getPayloadLength() == 8) {
             // Read float from packet payload
-            float command = pkt->readFloat();
+            float amplitude = pkt->readFloat();
+            float frequency = pkt->readFloat();
             // Set motor velocity
-            vibeMotor.setVelocity(getVibrationCommand(millis() - vibStart, command));
+            vibeMotor.setVelocity(getVibrationCommand(millis() - vibStart, amplitude, frequency));
             Serial.print("Received command: ");
-            Serial.println(command);
+            Serial.print("Amplitude: ");
+            Serial.print(amplitude, 6);
+            Serial.print(", Frequency: ");
+            Serial.println(frequency, 6);
 
             digitalWrite(2, HIGH); // Turn on built-in LED to indicate packet received
         }
