@@ -22,6 +22,9 @@ public:
 
     // Set target position (rad)
     void setPosition(float position);
+
+    // Set the sign used for commanded motor position
+    void setDirection(Direction direction);
     
     // Update FOC loop (call in loop)
     void update();
@@ -34,6 +37,7 @@ private:
     BLDCDriver3PWM driver;
     MagneticSensorI2C encoder;
     float targetPosition;
+    Direction motorDirection;
 };
 
 #endif

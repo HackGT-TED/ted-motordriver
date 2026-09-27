@@ -26,7 +26,16 @@ SongbirdUART uart("UART Node", serial);
 //Serial protocol object
 std::shared_ptr<SongbirdCore> core;
 
-const float positionGain = 1.0f;
+const float positionGain = 0.5f;
+const float positionOffset = -0.5f;
+const float positionSmoothingTime = 0.03f;
+const float positionNoise = 1.f;
+
+float commandPhase = 0.0f;
+float commandFrequency = 0.0f;
+float smoothedPosition = 0.0f;
+uint32_t waveformStartMicros = 0;
+uint32_t previousUpdateMicros = 0;
 
 EncoderMotor motors[NUM_FOC_MOTORS] = {
     EncoderMotor(
@@ -58,7 +67,8 @@ void setup() {
 
     for  (uint8_t i = 0; i < NUM_FOC_MOTORS; i++) {
         TwoWire* wire = (i == 0) ? &Wire : &Wire1;
-        motors[i].begin(motorDirs[i], encoderElectricAngles[i], true, wire);
+        motors[i].begin(encoderDirections[i], encoderElectricAngles[i], true, wire);
+        motors[i].setDirection(motorDirections[i]);
         motors[i].resetEncoder(encoderOffsets[i]);
     }
     
@@ -67,6 +77,11 @@ void setup() {
         motors[i].setPosition(0.0f);
     }
 
+    randomSeed(micros());
+
+    waveformStartMicros = micros();
+    previousUpdateMicros = waveformStartMicros;
+
     delay(1000); // Wait for motor to stabilize
 
     // Initialize UART and protocol
@@ -74,20 +89,15 @@ void setup() {
 
     // Handler for receiving commands
     core->setReadHandler([&](std::shared_ptr<SongbirdCore::Packet> pkt){
-        if (pkt->getHeader() == AMPLITUDE_PACKET_HEADER && pkt->getPayloadLength() == 4) {
-            float magnitude = pkt->readFloat();
-            pkt->readFloat();
-
-            float position = magnitude * positionGain;
-            for (int i = 0; i < NUM_FOC_MOTORS; ++i) {
-                motors[i].setPosition(position);
-            }
+        if (pkt->getHeader() == AMPLITUDE_PACKET_HEADER && pkt->getPayloadLength() == 8) {
+            commandPhase = pkt->readFloat();
+            commandFrequency = pkt->readFloat();
 
             Serial.print("Received command: ");
-            Serial.print("Magnitude: ");
-            Serial.print(magnitude, 6);
-            Serial.print(", Position: ");
-            Serial.println(position, 6);
+            Serial.print("Phase: ");
+            Serial.print(commandPhase, 6);
+            Serial.print(", Frequency: ");
+            Serial.println(commandFrequency, 6);
 
             digitalWrite(2, HIGH); // Turn on built-in LED to indicate packet received
         }
@@ -104,7 +114,20 @@ void setup() {
 }
 
 void loop() {
+    uint32_t nowMicros = micros();
+    float elapsedSeconds = (nowMicros - waveformStartMicros) * 1.0e-6f;
+    float desiredPosition = positionGain * sinf(
+        _2PI * commandFrequency * elapsedSeconds + commandPhase
+    );
+
+    float deltaSeconds = (nowMicros - previousUpdateMicros) * 1.0e-6f;
+    previousUpdateMicros = nowMicros;
+    float smoothingAlpha = deltaSeconds / (positionSmoothingTime + deltaSeconds);
+    smoothedPosition += smoothingAlpha * (desiredPosition - smoothedPosition);
+
     for (int i = 0; i < NUM_FOC_MOTORS; ++i) {
+        float noiseFactor = 1.0f + random(-1000, 1001) * 0.001f * positionNoise;
+        motors[i].setPosition(smoothedPosition * noiseFactor + positionOffset);
         motors[i].update();
     }
     uart.updateData();

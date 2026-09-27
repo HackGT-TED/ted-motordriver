@@ -4,7 +4,8 @@ EncoderMotor::EncoderMotor(uint8_t pwmA, uint8_t pwmB, uint8_t pwmC, uint8_t enA
     : motor(11),
       driver(pwmA, pwmB, pwmC, enA, enB, enC),
       encoder(AS5600_I2C),
-      targetPosition(0)
+    targetPosition(0),
+    motorDirection(Direction::CW)
 {
 }
 
@@ -90,9 +91,13 @@ void EncoderMotor::setPosition(float position) {
     targetPosition = position;
 }
 
+void EncoderMotor::setDirection(Direction direction) {
+    motorDirection = direction;
+}
+
 void EncoderMotor::update() {
     motor.loopFOC();
-    motor.move(targetPosition);
+    motor.move(static_cast<float>(motorDirection) * targetPosition);
 }
 
 void EncoderMotor::monitor() {
