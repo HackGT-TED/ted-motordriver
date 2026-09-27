@@ -86,5 +86,5 @@ const Direction motorDirections[NUM_FOC_MOTORS] = {
     Direction::CCW // Motor 1
 };
 
-float encoderElectricAngles[NUM_FOC_MOTORS] = {3.81f, 3.23f}; // Motor 0, Motor 1
-float encoderOffsets[NUM_FOC_MOTORS] = {0.452f, 2.273f}; // Motor 0, Motor 1
+float encoderElectricAngles[NUM_FOC_MOTORS] = {4.43f, 3.9f}; // Motor 0, Motor 1
+float encoderOffsets[NUM_FOC_MOTORS] = {3.f, 2.8f}; // Motor 0, Motor 1
